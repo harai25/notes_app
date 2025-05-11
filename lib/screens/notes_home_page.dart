@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 import '../models/folder.dart';
+import '../utils/date.dart';
 import 'note_editor_page.dart';
 import 'package:intl/intl.dart';
 
@@ -13,53 +14,7 @@ class NotesHomePage extends StatefulWidget {
 
 class _NotesHomePageState extends State<NotesHomePage> {
   // Список заметок
-  final List<Note> _notes = [
-    Note(
-      id: '1',
-      title: 'Скрип двери в пустой комнате',
-      content:
-          'Кажется, что-то шевельнулось за занавеской. Но это, наверное, просто сквозняк.',
-      dateTime: DateTime.now(),
-      folder: 'Все',
-    ),
-    Note(
-      id: '2',
-      title: 'Старая фотография без лиц',
-      content: '',
-      dateTime: DateTime.now().subtract(const Duration(days: 14)),
-      folder: 'Апрель',
-    ),
-    Note(
-      id: '3',
-      title: 'Лампочка моргает каждую ночь',
-      content: '',
-      dateTime: DateTime.now().subtract(const Duration(days: 28)),
-      folder: 'Апрель',
-    ),
-    Note(
-      id: '4',
-      title: 'Шаги на чердаке после полуночи',
-      content:
-          'Иногда кажется, что кто-то ходит там, но лестница давно сгнила.',
-      dateTime: DateTime.now().subtract(const Duration(days: 28)),
-      folder: 'Апрель',
-    ),
-    Note(
-      id: '5',
-      title: 'Запах дыма без огня',
-      content: '',
-      dateTime: DateTime.now().subtract(const Duration(days: 28)),
-      folder: 'Апрель',
-    ),
-    Note(
-      id: '6',
-      title: 'Письмо без обратного адреса',
-      content:
-          'Текст был размыт водой или слезами. Только подпись осталась чёткой.',
-      dateTime: DateTime.now().subtract(const Duration(days: 35)),
-      folder: 'Апрель',
-    ),
-  ];
+  final List<Note> _notes = [];
 
   // Список папок
   List<Folder> _folders = [];
@@ -117,27 +72,8 @@ class _NotesHomePageState extends State<NotesHomePage> {
     if (noteDate == today) {
       return DateFormat('HH:mm').format(date);
     } else {
-      return '${date.day} ${_getMonthName(date.month)}';
+      return '${date.day} ${getMonthName(date.month)}';
     }
-  }
-
-  // Получение названия месяца
-  String _getMonthName(int month) {
-    const months = [
-      'Январь',
-      'Февраль',
-      'Март',
-      'Апрель',
-      'Май',
-      'Июнь',
-      'Июль',
-      'Август',
-      'Сентябрь',
-      'Октябрь',
-      'Ноябрь',
-      'Декабрь',
-    ];
-    return months[month - 1];
   }
 
   @override
@@ -174,10 +110,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
 
   // Построение секции с папками
   Widget _buildFoldersSection() {
-    // Определяем, нужна ли кнопка "Показать все"
     final bool needExpandButton = _folders.length > 5;
-
-    // Определяем, сколько папок показывать
     final foldersToShow =
         _showAllFolders ? _folders : _folders.take(5).toList();
 
@@ -185,30 +118,36 @@ class _NotesHomePageState extends State<NotesHomePage> {
       color: Colors.white,
       child: Column(
         children: [
-          // Горизонтальный список папок
-          SizedBox(
-            height: 50,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              itemCount:
-                  foldersToShow.length +
-                  (needExpandButton && !_showAllFolders ? 1 : 0),
-              itemBuilder: (context, index) {
-                // Если это последний элемент и нужна кнопка расширения
-                if (needExpandButton &&
-                    !_showAllFolders &&
-                    index == foldersToShow.length) {
-                  return _buildExpandButton();
-                }
-
-                final folder = foldersToShow[index];
-                return _buildFolderChip(folder);
-              },
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 50,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    itemCount:
+                        foldersToShow.length +
+                        (needExpandButton && !_showAllFolders ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (needExpandButton &&
+                          !_showAllFolders &&
+                          index == foldersToShow.length) {
+                        return _buildExpandButton();
+                      }
+                      final folder = foldersToShow[index];
+                      return _buildFolderChip(folder);
+                    },
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline),
+                onPressed: () => _showAddFolderDialog(context),
+                color: Colors.grey[600],
+              ),
+            ],
           ),
-
-          // Если показываем все папки, отображаем их в сетке
           if (_showAllFolders) _buildExpandedFoldersGrid(),
         ],
       ),
@@ -231,12 +170,7 @@ class _NotesHomePageState extends State<NotesHomePage> {
         ),
         selected: isSelected,
         backgroundColor: Colors.grey[200],
-        selectedColor:
-            folder.name == 'Все'
-                ? Colors.grey[300]
-                : folder.name == 'Август'
-                ? Colors.red[100]
-                : Colors.grey[300],
+        selectedColor: Colors.grey[300],
         onSelected: (selected) {
           if (selected) {
             setState(() {
@@ -322,7 +256,10 @@ class _NotesHomePageState extends State<NotesHomePage> {
             children: [
               Text(
                 note.title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -351,51 +288,94 @@ class _NotesHomePageState extends State<NotesHomePage> {
   }
 
   // Открытие редактора заметок
-void _openNoteEditor(BuildContext context, {Note? note, String? folder}) {
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder:
-          (context) => NoteEditorPage(
-            onSave: (title, content, folder) {
-              setState(() {
-                if (note != null) {
-                  // Обновляем существующую заметку
-                  final updatedNoteIndex = _notes.indexWhere(
-                    (n) => n.id == note.id,
-                  );
-                  if (updatedNoteIndex != -1) {
-                    _notes[updatedNoteIndex] = Note(
-                      id: note.id,
+  void _openNoteEditor(BuildContext context, {Note? note, String? folder}) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (context) => NoteEditorPage(
+              onSave: (title, content, folder) {
+                setState(() {
+                  if (note != null) {
+                    // Обновляем существующую заметку
+                    final updatedNoteIndex = _notes.indexWhere(
+                      (n) => n.id == note.id,
+                    );
+                    if (updatedNoteIndex != -1) {
+                      _notes[updatedNoteIndex] = Note(
+                        id: note.id,
+                        title: title,
+                        content: content,
+                        dateTime: DateTime.now(),
+                        folder: folder,
+                      );
+                    }
+                  } else {
+                    // Создаем новую заметку
+                    final newNote = Note(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
                       title: title,
                       content: content,
                       dateTime: DateTime.now(),
                       folder: folder,
                     );
-                  }
-                } else {
-                  // Создаем новую заметку
-                  final newNote = Note(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    title: title,
-                    content: content,
-                    dateTime: DateTime.now(),
-                    folder: folder,
-                  );
 
-                  _notes.insert(0, newNote);
-                }
-                _initFolders(); // Обновляем список папок
-              });
-            },
-            note: note,
-            folder: folder ?? _selectedFolder,
-          ),
-    ),
-  );
-}
+                    _notes.insert(0, newNote);
+                  }
+                  _initFolders(); // Обновляем список папок
+                });
+              },
+              note: note,
+              folder: folder ?? _selectedFolder,
+            ),
+      ),
+    );
+  }
 
   // Обработчик нажатия на заметку
   void _onNoteTap(Note note) {
     _openNoteEditor(context, note: note);
+  }
+
+  // New state variable for folder name input
+  String _newFolderName = '';
+
+  // Widget for adding new folder via popup dialog
+  void _showAddFolderDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Создать новую папку'),
+          content: TextField(
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'Введите название папки',
+            ),
+            onChanged: (value) {
+              _newFolderName = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: Navigator.of(context).pop,
+              child: const Text('Отмена'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (_newFolderName.isNotEmpty &&
+                    !_folders.any((f) => f.name == _newFolderName)) {
+                  setState(() {
+                    _folders.add(Folder(name: _newFolderName, noteCount: 0));
+                    _selectedFolder = _newFolderName;
+                  });
+                }
+                Navigator.of(context).pop();
+              },
+              child: const Text('Добавить'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

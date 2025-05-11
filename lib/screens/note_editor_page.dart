@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../utils/pluralize.dart'; // Импортируем нашу функцию
+import '../utils/pluralize.dart';
 import '../models/note.dart';
 
 class NoteEditorPage extends StatefulWidget {
