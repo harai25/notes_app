@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../utils/pluralize.dart'; // Импортируем нашу функцию
 import '../models/note.dart';
 
 class NoteEditorPage extends StatefulWidget {
@@ -18,11 +19,12 @@ class NoteEditorPage extends StatefulWidget {
   _NoteEditorPageState createState() => _NoteEditorPageState();
 }
 
-// ignore_for_file: library_private_types_in_public_api
 class _NoteEditorPageState extends State<NoteEditorPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   late String _selectedFolder;
+
+  int get _characterCount => _contentController.text.length;
 
   @override
   void initState() {
@@ -33,6 +35,21 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
       _contentController.text = widget.note!.content;
       _selectedFolder = widget.note!.folder;
     }
+
+    // Слушаем изменения текста для обновления счетчика
+    _contentController.addListener(_updateCharacterCount);
+  }
+
+  void _updateCharacterCount() {
+    setState(() {}); // Перерисовываем только строку с количеством символов
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.removeListener(_updateCharacterCount);
+    _contentController.dispose();
+    super.dispose();
   }
 
   @override
@@ -60,7 +77,7 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${DateFormat('dd MMMM HH:mm').format(DateTime.now())} | 42 символов',
+              '${DateFormat('dd MMMM HH:mm').format(DateTime.now())} | $_characterCount ${pluralize(_characterCount, ['символ', 'символа', 'символов'])}',
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
             const SizedBox(height: 16),
