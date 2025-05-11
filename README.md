@@ -1,3 +1,3 @@
-# flutter_application_1
+# notes_app
 
 A new Flutter project.
