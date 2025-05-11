@@ -110,7 +110,10 @@ class _NotesHomePageState extends State<NotesHomePage> {
 
   // Построение секции с папками
   Widget _buildFoldersSection() {
+    // Определяем, нужно ли показывать стрелочку-плюс (если папок больше, чем помещается)
     final bool needExpandButton = _folders.length > 5;
+
+    // Формируем список отображаемых папок
     final foldersToShow =
         _showAllFolders ? _folders : _folders.take(5).toList();
 
@@ -126,15 +129,8 @@ class _NotesHomePageState extends State<NotesHomePage> {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    itemCount:
-                        foldersToShow.length +
-                        (needExpandButton && !_showAllFolders ? 1 : 0),
+                    itemCount: foldersToShow.length,
                     itemBuilder: (context, index) {
-                      if (needExpandButton &&
-                          !_showAllFolders &&
-                          index == foldersToShow.length) {
-                        return _buildExpandButton();
-                      }
                       final folder = foldersToShow[index];
                       return _buildFolderChip(folder);
                     },
@@ -148,6 +144,9 @@ class _NotesHomePageState extends State<NotesHomePage> {
               ),
             ],
           ),
+          // Показываем плюсик только если есть скрытые папки и мы ещё не в режиме просмотра всех
+          if (!_showAllFolders && needExpandButton) _buildArrowButton(),
+          // Если показываем все папки, отображаем их в сетке
           if (_showAllFolders) _buildExpandedFoldersGrid(),
         ],
       ),
@@ -178,22 +177,6 @@ class _NotesHomePageState extends State<NotesHomePage> {
               _showAllFolders = false;
             });
           }
-        },
-      ),
-    );
-  }
-
-  // Построение кнопки расширения
-  Widget _buildExpandButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      child: ActionChip(
-        label: const Text('Ещё'),
-        backgroundColor: Colors.grey[200],
-        onPressed: () {
-          setState(() {
-            _showAllFolders = true;
-          });
         },
       ),
     );
@@ -283,6 +266,24 @@ class _NotesHomePageState extends State<NotesHomePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildArrowButton() {
+    return Center(
+      child: IconButton(
+        icon: const Icon(
+          Icons.keyboard_arrow_down,
+          size: 20,
+          color: Colors.black,
+        ),
+        color: Colors.grey[600],
+        onPressed: () {
+          setState(() {
+            _showAllFolders = true;
+          });
+        },
       ),
     );
   }
