@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/note.dart';
 
 class NoteEditorPage extends StatefulWidget {
@@ -6,7 +7,12 @@ class NoteEditorPage extends StatefulWidget {
   final Note? note;
   final String folder;
 
-  const NoteEditorPage({super.key, required this.onSave, this.note, required this.folder});
+  const NoteEditorPage({
+    super.key,
+    required this.onSave,
+    this.note,
+    required this.folder,
+  });
 
   @override
   _NoteEditorPageState createState() => _NoteEditorPageState();
@@ -48,47 +54,45 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              '${DateFormat('dd MMMM HH:mm').format(DateTime.now())} | 42 символов',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
-                labelText: 'Заголовок',
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            Expanded(
-              child: TextField(
-                controller: _contentController,
-                decoration: const InputDecoration(
-                  labelText: 'Содержание',
+                hintText: 'Заголовок',
+                border: InputBorder.none,
+                hintStyle: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
                 ),
-                maxLines: null,
-                expands: true,
-                keyboardType: TextInputType.multiline,
               ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16.0),
-            // DropdownButtonFormField<String>(
-            //   value: _selectedFolder,
-            //   onChanged: (String? newValue) {
-            //     setState(() {
-            //       _selectedFolder = newValue!;
-            //     });
-            //   },
-            //   items: <String>['Все', 'Апрель', 'Август']
-            //       .map<DropdownMenuItem<String>>((String value) {
-            //     return DropdownMenuItem<String>(
-            //       value: value,
-            //       child: Text(value),
-            //     );
-            //   }).toList(),
-            //   decoration: const InputDecoration(
-            //     labelText: 'Папка',
-            //   ),
-            // ),
+
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: _contentController,
+              decoration: const InputDecoration(
+                hintText: 'Начните ввод',
+                border: InputBorder.none,
+                hintStyle: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+              style: const TextStyle(fontSize: 16),
+              maxLines: null,
+              minLines: 5,
+              keyboardType: TextInputType.multiline,
+            ),
           ],
         ),
       ),
